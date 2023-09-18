@@ -24,7 +24,7 @@ def login(
 		raw_request: Request = None,
 		db: Session = Depends(get_db)
 ) -> any:
-	user = crud.user.get_by_username(db, username=request.username)
+	user = crud.user.get_by_username(db=db, username=request.username)
 	if not user:
 		raise HTTPException(
 			status_code=status.HTTP_401_UNAUTHORIZED,
@@ -50,12 +50,12 @@ def login(
 		}
 	)
 	# SAVE VALID TOKEN
-	token_active = crud.auth.get_valid_token(db, username=user.username)
+	token_active = crud.auth.get_valid_token(db=db, username=user.username)
 	user_ip = raw_request.client.host
 	if token_active:
-		crud.auth.update_valid_token(db, token_active.username, access_token, user_ip)
+		crud.auth.update_valid_token(db=db, username=token_active.username, token=access_token, user_ip=user_ip)
 	else:
-		crud.auth.create_valid_token(db, user.username, access_token, user_ip)
+		crud.auth.create_valid_token(db=db, username=user.username, token=access_token, user_ip=user_ip)
 	token = {
 		"user_data": {
 			"id": user.id,

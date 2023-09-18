@@ -35,13 +35,13 @@ async def get_current_user(
         token_data = schemas.TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = crud.user.get_by_username(db, username=token_data.username)
+    user = crud.user.get_by_username(db=db, username=token_data.username)
     if user is None:
         raise credentials_exception
     if user.is_active is False:
         raise credentials_exception
 
-    valid_token = crud.auth.get_valid_token(db, username=token_data.username)
+    valid_token = crud.auth.get_valid_token(db=db, username=token_data.username)
     if valid_token is None or not compare_digest(valid_token.token, token.replace('"', '')):
         raise credentials_exception
     return schemas.User.model_validate(user)

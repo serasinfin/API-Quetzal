@@ -24,7 +24,7 @@ async def get_all(
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(jwt.get_current_user)
 ):
-    users = crud.user.get_multi(db, skip=skip, limit=limit)
+    users = crud.user.get_multi(db=db, skip=skip, limit=limit)
     return [schemas.User.model_validate(u) for u in users]
 
 
@@ -38,13 +38,13 @@ async def create(
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(jwt.get_current_user)
 ) -> any:
-    user = crud.user.get_by_username(db, username=request.username)
+    user = crud.user.get_by_username(db=db, username=request.username)
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El nombre de usuario ya existe."
         )
-    if crud.user.create(db, obj_in=request):
+    if crud.user.create(db=db, obj_in=request):
         return {"message": "Usuario creado exitosamente."}
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -64,20 +64,20 @@ async def update(
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(jwt.get_current_user)
 ) -> any:
-    user = crud.user.get_by_id(db, user_id=user_id)
+    user = crud.user.get_by_id(db=db, user_id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="El usuario con ese ID no existe."
         )
     if user.username != request.username:
-        user = crud.user.get_by_username(db, username=request.username)
+        user = crud.user.get_by_username(db=db, username=request.username)
         if user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El nombre de usuario ya existe."
             )
-    if crud.user.update(db, user_id, obj_in=request):
+    if crud.user.update(db=db, user_id=user_id, obj_in=request):
         return {"message": "Usuario actualizado exitosamente."}
     else:
         raise HTTPException(
@@ -98,13 +98,13 @@ async def update_password(
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(jwt.get_current_user)
 ) -> any:
-    user = crud.user.get_by_id(db, user_id=user_id)
+    user = crud.user.get_by_id(db=db, user_id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="El usuario con ese ID no existe."
         )
-    crud.user.update_password(db, user_id=user_id, obj_in=request)
+    crud.user.update_password(db=db, user_id=user_id, obj_in=request)
     return {"message": "Contraseña actualizada exitosamente."}
 
 
@@ -119,7 +119,7 @@ async def delete(
         db: Session = Depends(get_db),
         current_user: schemas.User = Depends(jwt.get_current_user)
 ) -> any:
-    user = crud.user.get_by_id(db, user_id=user_id)
+    user = crud.user.get_by_id(db=db, user_id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -136,7 +136,7 @@ async def delete(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El usuario esta inactivo."
             )
-    if crud.user.delete(db, user_id=user_id):
+    if crud.user.delete(db=db, user_id=user_id):
         return {"message": "Usuario eliminado exitosamente."}
     else:
         raise HTTPException(
